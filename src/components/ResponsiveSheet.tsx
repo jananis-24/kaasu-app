@@ -49,3 +49,18 @@ export function SheetHeader(props: { title: string; onClose: () => void; action?
     </div>
   )
 }
+
+/** The part of a sheet that scrolls. Header above and footer below stay put. */
+export function SheetBody({ children }: { children: ReactNode }) {
+  // Small side padding so focus rings and selected borders aren't cut off by the scroll edge
+  return (
+    <div className="-mx-1 flex min-h-0 flex-1 flex-col gap-3.5 overflow-y-auto px-1">
+      {children}
+    </div>
+  )
+}
+
+/** Action buttons pinned to the bottom of a sheet, never scrolled away. */
+export function SheetFooter({ children }: { children: ReactNode }) {
+  return <div className="flex shrink-0 gap-2.5">{children}</div>
+}

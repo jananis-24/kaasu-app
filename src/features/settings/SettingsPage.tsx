@@ -26,7 +26,7 @@ export function SettingsPage({ aside }: { aside?: React.ReactNode }) {
     <div className="flex flex-col gap-4 pt-2 pb-6 lg:gap-5 lg:pt-0">
       <h1 className="px-1 pt-2 pb-1 text-2xl tracking-[-0.01em] lg:p-0">Settings</h1>
 
-      <div className="flex flex-col gap-4 lg:grid lg:grid-cols-[1fr_1.15fr] lg:items-start lg:gap-6">
+      <div className="flex flex-col gap-4 lg:grid lg:grid-cols-[minmax(0,1fr)_minmax(0,1.15fr)] lg:items-start lg:gap-6">
         <div className="flex flex-col gap-4 lg:gap-6">
           <section
             aria-labelledby="look-h"

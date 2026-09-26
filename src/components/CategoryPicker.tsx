@@ -1,5 +1,5 @@
 import { Check, Plus } from "lucide-react"
-import { Link } from "react-router"
+import { Link, useLocation } from "react-router"
 import type { Category, TransactionType } from "@/features/categories/schema"
 import { cn } from "@/lib/utils"
 import { CategoryTile } from "./CategoryTile"
@@ -13,8 +13,11 @@ type Props = {
   errorId?: string
 }
 
-/** 5-column grid of category tiles plus a "New" tile that opens the category form. */
+/** 5-column grid of category tiles plus a "New" tile that opens the category sheet on top. */
 export function CategoryPicker({ categories, value, onChange, type, invalid, errorId }: Props) {
+  const location = useLocation()
+  const newCategory = new URLSearchParams(location.search)
+  newCategory.set("newCategory", type)
   return (
     <div
       className="grid grid-cols-5 gap-1.5"
@@ -49,7 +52,7 @@ export function CategoryPicker({ categories, value, onChange, type, invalid, err
         )
       })}
       <Link
-        to={`/settings/categories?new=${type}`}
+        to={{ search: newCategory.toString() }}
         aria-label="New category"
         className="flex flex-col items-center gap-1 rounded-[16px] border-2 border-transparent py-1.5 font-semibold text-xs"
       >

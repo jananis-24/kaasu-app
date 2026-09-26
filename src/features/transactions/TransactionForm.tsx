@@ -10,8 +10,9 @@ import {
 } from "lucide-react"
 import { useEffect, useId, useRef } from "react"
 import { Controller, useForm } from "react-hook-form"
+import { useSearchParams } from "react-router"
 import { CategoryPicker } from "@/components/CategoryPicker"
-import { SheetHeader } from "@/components/ResponsiveSheet"
+import { SheetBody, SheetFooter, SheetHeader } from "@/components/ResponsiveSheet"
 import { Button } from "@/components/ui/button"
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
 import { useCategories } from "@/features/categories/queries"
@@ -70,6 +71,21 @@ export function TransactionForm({
 
   useEffect(() => onDirtyChange(formState.isDirty), [formState.isDirty, onDirtyChange])
 
+  // A category just made with the "New" tile comes back as ?picked=<id>: select it.
+  const [params, setParams] = useSearchParams()
+  const picked = Number(params.get("picked")) || undefined
+  useEffect(() => {
+    if (!picked) return
+    setValue("categoryId", picked, { shouldDirty: true, shouldValidate: true })
+    setParams(
+      (current) => {
+        current.delete("picked")
+        return current
+      },
+      { replace: true },
+    )
+  }, [picked, setValue, setParams])
+
   const submit = (addAnother: boolean) =>
     handleSubmit(async (values) => {
       await onSubmit(values, addAnother)
@@ -88,11 +104,7 @@ export function TransactionForm({
   const { ref: dateFieldRef, ...dateField } = register("date")
 
   return (
-    <form
-      noValidate
-      onSubmit={submit(false)}
-      className="flex min-h-0 flex-1 flex-col gap-3.5 overflow-y-auto"
-    >
+    <form noValidate onSubmit={submit(false)} className="flex min-h-0 flex-1 flex-col gap-3.5">
       <SheetHeader
         title={isEdit ? "Edit transaction" : "Add transaction"}
         onClose={onClose}
@@ -111,127 +123,129 @@ export function TransactionForm({
         }
       />
 
-      <Controller
-        control={control}
-        name="type"
-        render={({ field }) => (
-          <ToggleGroup
-            aria-label="Type"
-            spacing={1}
-            className="segmented grid w-full"
-            value={[field.value]}
-            onValueChange={(values) => {
-              const next = values[0] as TransactionFormValues["type"] | undefined
-              if (!next || next === field.value) return
-              field.onChange(next)
-              setValue("categoryId", null) // categories differ per type
-            }}
-          >
-            <ToggleGroupItem value="out">
-              <ArrowUpRight strokeWidth={2.4} />
-              Expense
-            </ToggleGroupItem>
-            <ToggleGroupItem value="in">
-              <ArrowDownLeft strokeWidth={2.4} />
-              Income
-            </ToggleGroupItem>
-          </ToggleGroup>
-        )}
-      />
-
-      <div className="flex flex-col gap-1.5">
-        <label htmlFor={`${ids}-amount`} className="font-bold text-sm">
-          Amount
-        </label>
-        <div
-          className={cn(
-            "flex h-17 items-center gap-1.5 rounded-[18px] border-2 border-transparent bg-track px-4 focus-within:border-fg",
-            amountError && "border-expense focus-within:border-expense",
-          )}
-        >
-          <span
-            aria-hidden
-            className={cn(
-              "font-bold font-display text-[34px]",
-              !watch("amount") && "text-fg-muted",
-            )}
-          >
-            {currencySymbol(currency)}
-          </span>
-          <input
-            id={`${ids}-amount`}
-            inputMode="decimal"
-            autoComplete="off"
-            placeholder="0"
-            // biome-ignore lint/a11y/noAutofocus: the sheet opens to type an amount, so the keyboard should come up right away
-            autoFocus={!isEdit}
-            aria-invalid={Boolean(amountError)}
-            aria-describedby={amountError ? `${ids}-amount-error` : undefined}
-            className="num h-15 min-w-0 grow bg-transparent p-0 font-bold font-display text-[34px] outline-none placeholder:text-fg-muted"
-            {...amountField}
-            ref={(element) => {
-              amountFieldRef(element)
-              amountRef.current = element
-            }}
-          />
-        </div>
-        {amountError && <FieldError id={`${ids}-amount-error`}>{amountError}</FieldError>}
-      </div>
-
-      <fieldset className="flex min-w-0 flex-col gap-2">
-        <legend className="pb-2 font-bold text-sm">Category</legend>
+      <SheetBody>
         <Controller
           control={control}
-          name="categoryId"
+          name="type"
           render={({ field }) => (
-            <CategoryPicker
-              categories={categories}
-              value={field.value}
-              onChange={field.onChange}
-              type={type}
-              invalid={Boolean(categoryError)}
-              errorId={`${ids}-category-error`}
-            />
+            <ToggleGroup
+              aria-label="Type"
+              spacing={1}
+              className="segmented grid w-full"
+              value={[field.value]}
+              onValueChange={(values) => {
+                const next = values[0] as TransactionFormValues["type"] | undefined
+                if (!next || next === field.value) return
+                field.onChange(next)
+                setValue("categoryId", null) // categories differ per type
+              }}
+            >
+              <ToggleGroupItem value="out">
+                <ArrowUpRight strokeWidth={2.4} />
+                Expense
+              </ToggleGroupItem>
+              <ToggleGroupItem value="in">
+                <ArrowDownLeft strokeWidth={2.4} />
+                Income
+              </ToggleGroupItem>
+            </ToggleGroup>
           )}
         />
-        {categoryError && <FieldError id={`${ids}-category-error`}>{categoryError}</FieldError>}
-      </fieldset>
 
-      {/* The row shows the date nicely; the native date input on top of it does the picking. */}
-      <label className="relative flex min-h-13 items-center gap-3 rounded-[16px] bg-track px-3.5">
-        <CalendarDays className="size-icon" strokeWidth={2} aria-hidden />
-        <span className="grow font-bold text-sm">Date</span>
-        <span className="font-semibold">
-          {date === todayKey() ? "Today" : format(parseISO(date), "d MMM yyyy")}
-        </span>
-        <ChevronRight className="size-[18px]" strokeWidth={2.2} aria-hidden />
-        <input
-          type="date"
-          required
-          className="absolute inset-0 cursor-pointer opacity-0"
-          onClick={() => dateRef.current?.showPicker?.()}
-          {...dateField}
-          ref={(element) => {
-            dateFieldRef(element)
-            dateRef.current = element
-          }}
-        />
-      </label>
+        <div className="flex flex-col gap-1.5">
+          <label htmlFor={`${ids}-amount`} className="font-bold text-sm">
+            Amount
+          </label>
+          <div
+            className={cn(
+              "flex h-17 items-center gap-1.5 rounded-[18px] border-2 border-transparent bg-track px-4 focus-within:border-fg",
+              amountError && "border-expense focus-within:border-expense",
+            )}
+          >
+            <span
+              aria-hidden
+              className={cn(
+                "font-bold font-display text-[34px]",
+                !watch("amount") && "text-fg-muted",
+              )}
+            >
+              {currencySymbol(currency)}
+            </span>
+            <input
+              id={`${ids}-amount`}
+              inputMode="decimal"
+              autoComplete="off"
+              placeholder="0"
+              // biome-ignore lint/a11y/noAutofocus: the sheet opens to type an amount, so the keyboard should come up right away
+              autoFocus={!isEdit}
+              aria-invalid={Boolean(amountError)}
+              aria-describedby={amountError ? `${ids}-amount-error` : undefined}
+              className="num h-15 min-w-0 grow bg-transparent p-0 font-bold font-display text-[34px] outline-none placeholder:text-fg-muted"
+              {...amountField}
+              ref={(element) => {
+                amountFieldRef(element)
+                amountRef.current = element
+              }}
+            />
+          </div>
+          {amountError && <FieldError id={`${ids}-amount-error`}>{amountError}</FieldError>}
+        </div>
 
-      <div className="flex flex-col gap-1.5">
-        <label htmlFor={`${ids}-note`} className="font-bold text-sm">
-          Note <span className="font-normal text-fg-muted">(optional)</span>
+        <fieldset className="flex min-w-0 flex-col gap-2">
+          <legend className="pb-2 font-bold text-sm">Category</legend>
+          <Controller
+            control={control}
+            name="categoryId"
+            render={({ field }) => (
+              <CategoryPicker
+                categories={categories}
+                value={field.value}
+                onChange={field.onChange}
+                type={type}
+                invalid={Boolean(categoryError)}
+                errorId={`${ids}-category-error`}
+              />
+            )}
+          />
+          {categoryError && <FieldError id={`${ids}-category-error`}>{categoryError}</FieldError>}
+        </fieldset>
+
+        {/* The row shows the date nicely; the native date input on top of it does the picking. */}
+        <label className="relative flex min-h-13 items-center gap-3 rounded-[16px] bg-track px-3.5">
+          <CalendarDays className="size-icon" strokeWidth={2} aria-hidden />
+          <span className="grow font-bold text-sm">Date</span>
+          <span className="font-semibold">
+            {date === todayKey() ? "Today" : format(parseISO(date), "d MMM yyyy")}
+          </span>
+          <ChevronRight className="size-[18px]" strokeWidth={2.2} aria-hidden />
+          <input
+            type="date"
+            required
+            className="absolute inset-0 cursor-pointer opacity-0"
+            onClick={() => dateRef.current?.showPicker?.()}
+            {...dateField}
+            ref={(element) => {
+              dateFieldRef(element)
+              dateRef.current = element
+            }}
+          />
         </label>
-        <input
-          id={`${ids}-note`}
-          placeholder="e.g. Swiggy order"
-          maxLength={200}
-          className="h-13 rounded-[16px] bg-track px-3.5 outline-none placeholder:text-fg-muted focus-visible:outline-2 focus-visible:outline-fg"
-          {...register("note")}
-        />
-      </div>
 
-      <div className="mt-auto flex gap-2.5 pt-1">
+        <div className="flex flex-col gap-1.5">
+          <label htmlFor={`${ids}-note`} className="font-bold text-sm">
+            Note <span className="font-normal text-fg-muted">(optional)</span>
+          </label>
+          <input
+            id={`${ids}-note`}
+            placeholder="e.g. Swiggy order"
+            maxLength={200}
+            className="h-13 rounded-[16px] bg-track px-3.5 outline-none placeholder:text-fg-muted focus-visible:outline-2 focus-visible:outline-fg"
+            {...register("note")}
+          />
+        </div>
+      </SheetBody>
+
+      <SheetFooter>
         {isEdit ? (
           <Button type="submit" size="lg" className="flex-1" disabled={formState.isSubmitting}>
             Save changes
@@ -253,7 +267,7 @@ export function TransactionForm({
             </Button>
           </>
         )}
-      </div>
+      </SheetFooter>
     </form>
   )
 }

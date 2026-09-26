@@ -387,7 +387,10 @@ flow("settings", async (page) => {
   await page.getByPlaceholder("Search by name or symbol").focus()
   await page.keyboard.press("ArrowDown")
   await page.keyboard.press("Enter")
-  check(await visible(page.getByRole("alertdialog", { name: /Switch to/ })), "arrow + Enter picks a currency")
+  check(
+    await visible(page.getByRole("alertdialog", { name: /Switch to/ })),
+    "arrow + Enter picks a currency",
+  )
   await page.getByRole("button", { name: "Cancel" }).click()
   check(await visible(page.getByText("¥ Japanese Yen")), "Cancel keeps the currency")
 })
@@ -426,6 +429,126 @@ flow("data", async (page) => {
     .getByLabel("Backup file")
     .setInputFiles({ name: "x.json", mimeType: "application/json", buffer: Buffer.from("{}") })
   check(await visible(page.getByText("That file isn't a Kaasu backup")), "bad file is rejected")
+})
+
+// ---------- Categories ----------
+
+/** Categories live on /settings/categories on mobile and in /settings on desktop */
+const categoriesUrl = () =>
+  `${base}${process.env.DESKTOP === "1" ? "/settings" : "/settings/categories"}`
+
+flow("categories", async (page) => {
+  await page.goto(categoriesUrl())
+  await page.getByRole("tab", { name: "Expense · 9" }).waitFor()
+  await page.getByRole("link", { name: "Add category" }).click()
+  await page.getByRole("button", { name: "Create category" }).click()
+  check(await visible(page.getByText("Give it a name")), "empty name error")
+  await page.getByLabel("Name").fill("food")
+  await page.getByRole("button", { name: "Create category" }).click()
+  check(
+    await visible(page.getByText("You already have an expense category called food")),
+    "duplicate name (any case)",
+  )
+  await shot(page, "cat-error")
+  await page.getByLabel("Name").fill("Pets")
+  await page.getByRole("button", { name: "paw" }).click()
+  await page.getByRole("button", { name: /^brown/ }).click()
+  await page.getByRole("button", { name: "Create category" }).click()
+  check(
+    await visible(page.getByRole("link", { name: /^Pets, 0 entries\. Edit/ })),
+    "new category listed",
+  )
+  check(await visible(page.getByRole("tab", { name: "Expense · 10" })), "tab count updates")
+
+  // Other is permanent: name locked, no Delete
+  await page
+    .getByRole("link", { name: /^Other, .*permanent/ })
+    .first()
+    .click()
+  check(await page.getByLabel("Name").isDisabled(), "Other's name can't change")
+  check(await visible(page.getByText(/is permanent/)), "explains Other is permanent")
+  check((await page.getByRole("button", { name: "Delete" }).count()) === 0, "Other has no Delete")
+  await shot(page, "cat-other")
+  await page.getByRole("button", { name: "Close" }).click()
+
+  // Delete a category without entries: straight away, with Undo
+  await page.getByRole("link", { name: /^Health, 0 entries/ }).click()
+  await page.getByRole("button", { name: "Delete" }).click()
+  check(await visible(page.getByText("“Health” deleted")), "undo toast for category")
+  check(await hidden(page.getByRole("link", { name: /^Health,/ })), "Health removed")
+  await page.getByRole("button", { name: "Undo" }).click()
+  check(await visible(page.getByRole("link", { name: /^Health,/ })), "undo restores Health")
+
+  // Delete with entries: move them first
+  await page.getByRole("link", { name: /^Fun, 2 entries/ }).click()
+  await page.getByRole("button", { name: "Delete" }).click()
+  check(
+    await visible(page.getByRole("alertdialog", { name: "Delete “Fun”?" })),
+    "asks where entries go",
+  )
+  check(
+    await visible(page.getByText("Fun has 2 entries. Move 2 entries to:")),
+    "says how many entries",
+  )
+  await shot(page, "cat-move")
+  await page.getByLabel("Move entries to").selectOption({ label: "Shopping" })
+  await page.getByRole("button", { name: "Move and delete" }).click()
+  check(
+    await visible(page.getByRole("link", { name: /^Shopping, 6 entries/ })),
+    "entries moved to Shopping",
+  )
+  await page.getByRole("button", { name: "Undo" }).click()
+  check(
+    await visible(page.getByRole("link", { name: /^Fun, 2 entries/ })),
+    "undo brings Fun and its entries back",
+  )
+  check(
+    await visible(page.getByRole("link", { name: /^Shopping, 4 entries/ })),
+    "Shopping count back to 4",
+  )
+
+  // Keyboard reorder: Space, ArrowUp, Space moves Transport above Food
+  await page.getByRole("button", { name: "Reorder Transport" }).focus()
+  for (const key of ["Space", "ArrowUp", "Space"]) {
+    await page.keyboard.press(key)
+    await page.waitForTimeout(300) // dnd-kit animates each step
+  }
+  const first = page.getByRole("tabpanel").getByRole("link").first()
+  check(
+    await eventually(async () => (await first.getAttribute("aria-label")).startsWith("Transport")),
+    "keyboard reorder",
+  )
+  await page.reload()
+  check(
+    await eventually(async () =>
+      (
+        await page.getByRole("tabpanel").getByRole("link").first().getAttribute("aria-label")
+      ).startsWith("Transport"),
+    ),
+    "order survives reload",
+  )
+
+  // Income tab
+  await page.getByRole("tab", { name: "Income · 2" }).click()
+  check(await visible(page.getByRole("link", { name: /^Salary/ })), "income tab lists Salary")
+})
+
+flow("new-category-from-form", async (page) => {
+  await openAdd(page)
+  await page.getByLabel("Amount").fill("300")
+  await page.getByRole("link", { name: "New category" }).click()
+  await page.getByLabel("Name").fill("Gym")
+  await page.getByRole("button", { name: "Create category" }).click()
+  check(
+    await visible(page.getByRole("button", { name: "Gym, selected" })),
+    "new category is picked in the form",
+  )
+  check((await page.getByLabel("Amount").inputValue()) === "300", "typed amount kept")
+  await page.getByRole("button", { name: "Save", exact: true }).click()
+  check(
+    await visible(page.getByRole("link", { name: /^Gym, expense ₹300/ })),
+    "saved with the new category",
+  )
 })
 
 // ---------- Runner ----------

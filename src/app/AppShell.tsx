@@ -1,6 +1,7 @@
 import { Wallet } from "lucide-react"
 import { NavLink, Outlet } from "react-router"
 import { Toaster } from "@/components/ui/sonner"
+import { CategorySheet } from "@/features/categories/CategorySheet"
 import { TransactionSheet } from "@/features/transactions/TransactionSheet"
 import { cn } from "@/lib/utils"
 import { NAV_ITEMS } from "./nav-items"
@@ -17,6 +18,7 @@ export function AppShell() {
       </main>
       <MobileNav />
       <TransactionSheet />
+      <CategorySheet />
       <Toaster />
     </div>
   )
