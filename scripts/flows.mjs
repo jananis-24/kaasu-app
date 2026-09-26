@@ -342,9 +342,12 @@ flow("settings", async (page) => {
     "accent survives reload",
   )
   await page.getByRole("button", { name: "System" }).click()
+  const deviceTheme = await page.evaluate(() =>
+    matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light",
+  )
   check(
-    await eventually(async () => (await html.getAttribute("data-theme")) === "light"),
-    "System follows the device (light)",
+    await eventually(async () => (await html.getAttribute("data-theme")) === deviceTheme),
+    "System follows the device",
   )
 
   // Currency: search, confirm, amounts keep their number
