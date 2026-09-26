@@ -15,7 +15,9 @@ const crop = (img) => {
   return png
 }
 const diff = new PNG({ width, height })
-const changed = pixelmatch(crop(imgA).data, crop(imgB).data, diff.data, width, height, { threshold: 0.1 })
+const changed = pixelmatch(crop(imgA).data, crop(imgB).data, diff.data, width, height, {
+  threshold: 0.1,
+})
 fs.writeFileSync(out, PNG.sync.write(diff))
 if (imgA.width !== imgB.width || imgA.height !== imgB.height)
   console.log(`size differs: ${imgA.width}x${imgA.height} vs ${imgB.width}x${imgB.height}`)

@@ -13,6 +13,16 @@
   --text-md: 14px;
   --text-sm: 13px;
   --text-xs: 12px;
+  /* Every size uses the body line height (1.4), as in the designs */
+  --text-hero--line-height: 1.4;
+  --text-3xl--line-height: 1.4;
+  --text-2xl--line-height: 1.4;
+  --text-xl--line-height: 1.4;
+  --text-lg--line-height: 1.4;
+  --text-base--line-height: 1.4;
+  --text-md--line-height: 1.4;
+  --text-sm--line-height: 1.4;
+  --text-xs--line-height: 1.4;
 
   /* Radius → rounded-xs … rounded-2xl, rounded-pill */
   --radius-xs: 4px;

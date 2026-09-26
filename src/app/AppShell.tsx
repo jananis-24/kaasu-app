@@ -9,7 +9,7 @@ export function AppShell() {
   return (
     <div className="page flex min-h-svh">
       <Sidebar />
-      <main className="min-w-0 flex-1 px-4 pt-3 pb-[calc(var(--spacing-bottom-nav)+24px)] lg:flex lg:justify-center lg:px-9 lg:pt-8 lg:pb-10">
+      <main className="min-w-0 flex-1 px-4 pt-3 pb-bottom-nav lg:flex lg:justify-center lg:px-9 lg:pt-8 lg:pb-10">
         <div className="w-full lg:max-w-content">
           <Outlet />
         </div>

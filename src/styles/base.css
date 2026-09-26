@@ -3,13 +3,14 @@
 
 @layer base {
   html {
+    /* Keep the browser's 16px root: Tailwind spacing is rem-based. */
     font-family: var(--font-body);
-    font-size: var(--text-base);
-    line-height: 1.4;
     color: var(--color-fg);
     -webkit-tap-highlight-color: transparent;
   }
   body {
+    font-size: var(--text-base);
+    line-height: 1.4;
     min-height: 100svh;
     background-color: var(--color-page-solid);
   }

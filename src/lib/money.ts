@@ -22,7 +22,7 @@ export function fromMinor(minor: number, currency: string) {
 
 /**
  * ₹53,494 · −₹420 · +₹85,000 · ₹12.50
- * Decimals only show when there are any. `sign` forces a leading + or −.
+ * Decimals only show when there are any. `sign` forces a leading + or − (never on zero).
  */
 export function formatMoney(minor: number, currency: string, sign?: "+" | "-") {
   const value = fromMinor(Math.abs(minor), currency)
@@ -32,7 +32,7 @@ export function formatMoney(minor: number, currency: string, sign?: "+" | "-") {
     currencyDisplay: "narrowSymbol",
     minimumFractionDigits: Number.isInteger(value) ? 0 : undefined,
   }).format(value)
-  const prefix = sign === "+" ? "+" : sign === "-" || minor < 0 ? MINUS : ""
+  const prefix = minor === 0 ? "" : sign === "+" ? "+" : sign === "-" || minor < 0 ? MINUS : ""
   return prefix + text
 }
 
