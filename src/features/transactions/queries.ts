@@ -12,3 +12,8 @@ export function useMonthTransactions(month: string) {
 export function useTransaction(id: number | undefined) {
   return useLiveQuery(() => (id ? db.transactions.get(id) : undefined), [id])
 }
+
+/** Every transaction, only loaded while `enabled` (used by search). */
+export function useAllTransactions(enabled: boolean) {
+  return useLiveQuery(async () => (enabled ? db.transactions.toArray() : undefined), [enabled])
+}

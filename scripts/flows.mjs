@@ -317,6 +317,50 @@ flow("edge-cases", async (page) => {
   )
 })
 
+flow("search", async (page) => {
+  await page.goto(`${base}/transactions`)
+  const box = page.getByLabel("Search transactions")
+  await box.fill("swiggy")
+  check(
+    await visible(page.getByRole("heading", { name: /results in all months/ })),
+    "search covers all months",
+  )
+  const rows = page.getByRole("link", { name: /Edit$/ })
+  check(await eventually(async () => (await rows.count()) === 6), "6 Swiggy orders across months")
+  check(page.url().includes("q=swiggy"), "search is in the URL")
+  await shot(page, "search")
+  await box.fill("650")
+  check(await visible(page.getByRole("link", { name: /Zomato, expense ₹650/ })), "search by amount")
+  await box.fill("GROCER")
+  check(
+    await eventually(async () => (await rows.count()) === 8),
+    "search by category name, any case",
+  )
+  await box.fill("nothing-like-this")
+  check(await visible(page.getByText("Nothing matches “nothing-like-this”.")), "no results message")
+  await page.getByRole("button", { name: "Clear search" }).click()
+  check(
+    await visible(page.getByRole("heading", { name: "September 2026" })),
+    "clearing search brings the month back",
+  )
+
+  await page.getByLabel("Filter by category").selectOption({ label: "Transport" })
+  check(
+    await eventually(async () => (await rows.count()) === 5),
+    "category filter: 5 Transport rows",
+  )
+  check(await visible(page.getByText("−₹890")), "summary follows the filter")
+  await shot(page, "category-filter")
+  await box.fill("uber")
+  check(
+    await eventually(async () => (await rows.count()) === 2),
+    "search + category together (both months)",
+  )
+  await page.getByLabel("Filter by category").selectOption({ label: "All categories" })
+  await page.getByRole("button", { name: "Clear search" }).click()
+  check(await eventually(async () => (await rows.count()) === 31), "all filters cleared")
+})
+
 // ---------- Settings ----------
 
 flow("settings", async (page) => {
