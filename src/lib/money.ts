@@ -2,15 +2,17 @@
 
 const MINUS = "−" // typographic minus, as in the designs
 
-function fractionDigits(currency: string) {
+/** Decimal places the currency uses: 2 for INR, 0 for JPY, 3 for KWD */
+export function fractionDigits(currency: string) {
   return (
     new Intl.NumberFormat("en", { style: "currency", currency }).resolvedOptions()
       .maximumFractionDigits ?? 2
   )
 }
 
-// Indian digit grouping (1,00,000) for rupees; the device's locale for everything else.
-const localeFor = (currency: string) => (currency === "INR" ? "en-IN" : undefined)
+// Indian digit grouping (1,00,000) for rupees; English formatting for everything else,
+// so symbols stay the same on every device ("A$", "SGD").
+const localeFor = (currency: string) => (currency === "INR" ? "en-IN" : "en")
 
 export function toMinor(amount: number, currency: string) {
   return Math.round(amount * 10 ** fractionDigits(currency))
@@ -29,20 +31,18 @@ export function formatMoney(minor: number, currency: string, sign?: "+" | "-") {
   const text = new Intl.NumberFormat(localeFor(currency), {
     style: "currency",
     currency,
-    currencyDisplay: "narrowSymbol",
     minimumFractionDigits: Number.isInteger(value) ? 0 : undefined,
   }).format(value)
   const prefix = minor === 0 ? "" : sign === "+" ? "+" : sign === "-" || minor < 0 ? MINUS : ""
   return prefix + text
 }
 
-/** "₹", "$", "€" */
+/** "₹", "$", "€", "A$", "SGD" */
 export function currencySymbol(currency: string) {
   return (
     new Intl.NumberFormat(localeFor(currency), {
       style: "currency",
       currency,
-      currencyDisplay: "narrowSymbol",
     })
       .formatToParts(0)
       .find((part) => part.type === "currency")?.value ?? currency

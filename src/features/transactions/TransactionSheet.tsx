@@ -1,6 +1,7 @@
 import { useState } from "react"
 import { useSearchParams } from "react-router"
 import { toast } from "sonner"
+import { ResponsiveSheet } from "@/components/ResponsiveSheet"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -11,7 +12,6 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
-import { Dialog, DialogContent } from "@/components/ui/dialog"
 import { useCurrency } from "@/features/settings/queries"
 import { deleteTransaction, restoreTransaction, saveTransaction } from "./actions"
 import { useTransaction } from "./queries"
@@ -56,32 +56,27 @@ export function TransactionSheet() {
 
   return (
     <>
-      <Dialog open={open} onOpenChange={(next) => !next && requestClose()}>
-        <DialogContent
-          showCloseButton={false}
-          className="data-closed:slide-out-to-bottom data-open:slide-in-from-bottom data-closed:zoom-out-100 data-open:zoom-in-100 lg:data-closed:slide-out-to-bottom-0 lg:data-open:slide-in-from-bottom-0 top-auto bottom-0 left-0 flex h-[720px] max-h-[calc(100svh-24px)] w-full max-w-none translate-x-0 translate-y-0 flex-col gap-0 rounded-none rounded-t-2xl px-5 pt-2.5 pb-6 shadow-sheet lg:top-1/2 lg:bottom-auto lg:left-1/2 lg:h-[700px] lg:w-[520px] lg:-translate-x-1/2 lg:-translate-y-1/2 lg:rounded-2xl lg:px-7 lg:pt-6 lg:pb-7 lg:shadow-dialog"
-        >
-          <span
-            aria-hidden
-            className="mb-3.5 h-[5px] w-10 shrink-0 self-center rounded-pill bg-track lg:hidden"
+      <ResponsiveSheet
+        open={open}
+        onOpenChange={(next) => !next && requestClose()}
+        className="h-[720px] gap-3.5 lg:h-[700px] lg:w-[520px]"
+      >
+        {open && (
+          <TransactionForm
+            key={editId ?? "new"}
+            transaction={editId ? transaction : undefined}
+            currency={currency}
+            onDirtyChange={setDirty}
+            onClose={requestClose}
+            onDelete={remove}
+            onSubmit={async (values, addAnother) => {
+              await saveTransaction(values, currency, editId)
+              if (!addAnother) close()
+              else toast("Saved. Add the next one.")
+            }}
           />
-          {open && (
-            <TransactionForm
-              key={editId ?? "new"}
-              transaction={editId ? transaction : undefined}
-              currency={currency}
-              onDirtyChange={setDirty}
-              onClose={requestClose}
-              onDelete={remove}
-              onSubmit={async (values, addAnother) => {
-                await saveTransaction(values, currency, editId)
-                if (!addAnother) close()
-                else toast("Saved. Add the next one.")
-              }}
-            />
-          )}
-        </DialogContent>
-      </Dialog>
+        )}
+      </ResponsiveSheet>
 
       <AlertDialog open={confirmingDiscard} onOpenChange={setConfirmingDiscard}>
         <AlertDialogContent>

@@ -99,6 +99,16 @@
   color: var(--cat);
 }
 
+/* A circle in an accent preset's own colour. Put data-accent="ocean" on the same element. */
+@utility accent-swatch {
+  background: var(--accent-light);
+  color: #ffffff;
+}
+[data-theme="dark"] .accent-swatch {
+  background: var(--accent-dark);
+  color: var(--accent-on-dark);
+}
+
 /* All money: tabular figures so columns line up */
 @utility num {
   font-variant-numeric: tabular-nums;

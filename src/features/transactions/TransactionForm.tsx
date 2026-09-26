@@ -7,13 +7,12 @@ import {
   ChevronRight,
   CircleAlert,
   Trash2,
-  X,
 } from "lucide-react"
 import { useEffect, useId, useRef } from "react"
 import { Controller, useForm } from "react-hook-form"
 import { CategoryPicker } from "@/components/CategoryPicker"
+import { SheetHeader } from "@/components/ResponsiveSheet"
 import { Button } from "@/components/ui/button"
-import { DialogTitle } from "@/components/ui/dialog"
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
 import { useCategories } from "@/features/categories/queries"
 import { todayKey } from "@/lib/dates"
@@ -94,22 +93,23 @@ export function TransactionForm({
       onSubmit={submit(false)}
       className="flex min-h-0 flex-1 flex-col gap-3.5 overflow-y-auto"
     >
-      <div className="flex items-center justify-between gap-2">
-        <Button type="button" variant="subtle" size="icon" aria-label="Close" onClick={onClose}>
-          <X strokeWidth={2.2} />
-        </Button>
-        <DialogTitle className="font-bold font-display text-[19px]">
-          {isEdit ? "Edit transaction" : "Add transaction"}
-        </DialogTitle>
-        {isEdit ? (
-          <Button type="button" variant="destructive-ghost" onClick={onDelete} className="gap-1.5">
-            <Trash2 strokeWidth={2.2} />
-            Delete
-          </Button>
-        ) : (
-          <span aria-hidden className="w-tap" />
-        )}
-      </div>
+      <SheetHeader
+        title={isEdit ? "Edit transaction" : "Add transaction"}
+        onClose={onClose}
+        action={
+          isEdit && (
+            <Button
+              type="button"
+              variant="destructive-ghost"
+              onClick={onDelete}
+              className="gap-1.5"
+            >
+              <Trash2 strokeWidth={2.2} />
+              Delete
+            </Button>
+          )
+        }
+      />
 
       <Controller
         control={control}

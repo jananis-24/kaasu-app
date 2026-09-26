@@ -317,6 +317,114 @@ flow("edge-cases", async (page) => {
   )
 })
 
+// ---------- Settings ----------
+
+flow("settings", async (page) => {
+  await page.goto(`${base}/settings`)
+  const html = page.locator("html")
+  await page.getByRole("button", { name: "Dark" }).click()
+  check(
+    await eventually(async () => (await html.getAttribute("data-theme")) === "dark"),
+    "Dark theme applies",
+  )
+  await page.getByRole("button", { name: "Ocean" }).click()
+  check(
+    await eventually(async () => (await html.getAttribute("data-accent")) === "ocean"),
+    "accent applies",
+  )
+  await page.reload()
+  check(
+    await eventually(async () => (await html.getAttribute("data-theme")) === "dark"),
+    "theme survives reload",
+  )
+  check(
+    await visible(page.getByRole("button", { name: "Ocean, selected" })),
+    "accent survives reload",
+  )
+  await page.getByRole("button", { name: "System" }).click()
+  check(
+    await eventually(async () => (await html.getAttribute("data-theme")) === "light"),
+    "System follows the device (light)",
+  )
+
+  // Currency: search, confirm, amounts keep their number
+  await page.getByRole("button", { name: /Currency/ }).click()
+  await shot(page, "currency-list")
+  await page.getByPlaceholder("Search by name or symbol").fill("euro")
+  check((await page.getByRole("option").count()) === 1, "search narrows to Euro")
+  await shot(page, "currency")
+  await page.getByRole("option", { name: /Euro/ }).click()
+  check(
+    await visible(page.getByRole("alertdialog", { name: "Switch to Euro (€)?" })),
+    "asks before switching",
+  )
+  check(
+    await visible(page.getByText("₹650 will show as €650")),
+    "explains amounts are not converted",
+  )
+  await shot(page, "currency-warn")
+  await page.getByRole("button", { name: "Switch to €" }).click()
+  check(await visible(page.getByText("€ Euro")), "currency row shows Euro")
+  await page.goto(base)
+  check(await visible(page.getByText("€53,494")), "dashboard shows €")
+
+  // Zero-decimal currency keeps the same numbers
+  await page.goto(`${base}/settings`)
+  await page.getByRole("button", { name: /Currency/ }).click()
+  await page.getByPlaceholder("Search by name or symbol").fill("yen")
+  await page.getByRole("option", { name: /Japanese Yen/ }).click()
+  await page.getByRole("button", { name: "Switch to ¥" }).click()
+  await page.getByText("¥ Japanese Yen").waitFor()
+  await page.goto(base)
+  check(await visible(page.getByText("¥53,494")), "switching to yen keeps ¥53,494 (no ×100)")
+
+  // Keyboard: arrows move, Enter picks
+  await page.goto(`${base}/settings`)
+  await page.getByRole("button", { name: /Currency/ }).click()
+  await page.getByPlaceholder("Search by name or symbol").focus()
+  await page.keyboard.press("ArrowDown")
+  await page.keyboard.press("Enter")
+  check(await visible(page.getByRole("alertdialog", { name: /Switch to/ })), "arrow + Enter picks a currency")
+  await page.getByRole("button", { name: "Cancel" }).click()
+  check(await visible(page.getByText("¥ Japanese Yen")), "Cancel keeps the currency")
+})
+
+flow("data", async (page) => {
+  await page.goto(`${base}/settings`)
+  const [download] = await Promise.all([
+    page.waitForEvent("download"),
+    page.getByRole("button", { name: /Export backup/ }).click(),
+  ])
+  const file = await download.path()
+  check(
+    /kaasu-backup-\d{4}-\d{2}-\d{2}\.json/.test(download.suggestedFilename()),
+    "backup file name",
+  )
+
+  await page.getByRole("button", { name: /Erase all data/ }).click()
+  await page.getByRole("button", { name: "Erase", exact: true }).click()
+  await page.getByText("All data erased").waitFor()
+  await page.goto(base)
+  check(await visible(page.getByText("No spending this month yet.")), "erase clears transactions")
+
+  await page.goto(`${base}/settings`)
+  await page.getByLabel("Backup file").setInputFiles(file)
+  check(
+    await visible(page.getByText(/This backup has 46 transactions/)),
+    "import shows what's inside",
+  )
+  await page.getByRole("button", { name: "Replace" }).click()
+  await page.getByText("Backup restored").waitFor()
+  await page.goto(base)
+  check(await visible(page.getByText("₹53,494")), "import brings everything back")
+
+  await page.goto(`${base}/settings`)
+  await page
+    .getByLabel("Backup file")
+    .setInputFiles({ name: "x.json", mimeType: "application/json", buffer: Buffer.from("{}") })
+  check(await visible(page.getByText("That file isn't a Kaasu backup")), "bad file is rejected")
+})
+
 // ---------- Runner ----------
 
 const browser = await chromium.launch()
