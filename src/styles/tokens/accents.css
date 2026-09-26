@@ -1,0 +1,65 @@
+/*
+  Accent presets. Set with <html data-accent="berry">.
+  Each preset is 3 values: light, dark, onDark (label colour on the dark accent).
+  Everything else (soft tint, calendar shading) is derived below.
+  To add an accent: add one block here and its key in features/settings/schema.ts.
+*/
+:root,
+[data-accent="berry"] {
+  --accent-light: #a8325a;
+  --accent-dark: #ff9fb6;
+  --accent-on-dark: #3a0d1c;
+}
+[data-accent="ocean"] {
+  --accent-light: #1a5ab3;
+  --accent-dark: #8fbfff;
+  --accent-on-dark: #0b1b33;
+}
+[data-accent="teal"] {
+  --accent-light: #096860;
+  --accent-dark: #6ed8cc;
+  --accent-on-dark: #082623;
+}
+[data-accent="leaf"] {
+  --accent-light: #316620;
+  --accent-dark: #a2d984;
+  --accent-on-dark: #122409;
+}
+[data-accent="sun"] {
+  --accent-light: #7a4e00;
+  --accent-dark: #f4c75b;
+  --accent-on-dark: #2a1c00;
+}
+[data-accent="coral"] {
+  --accent-light: #a3370b;
+  --accent-dark: #ffa488;
+  --accent-on-dark: #331208;
+}
+[data-accent="rose"] {
+  --accent-light: #b7236a;
+  --accent-dark: #ff9cc8;
+  --accent-on-dark: #330a1d;
+}
+[data-accent="slate"] {
+  --accent-light: #475569;
+  --accent-dark: #c5cdd8;
+  --accent-on-dark: #141a22;
+}
+
+/* Layer 3 · Derived. Computed from the accent, never stored. */
+@theme {
+  --color-accent: var(--accent-light);
+  --color-on-accent: #ffffff;
+  --color-accent-soft: color-mix(in oklab, var(--color-accent) var(--mix-soft), var(--color-surface));
+  --color-income-soft: color-mix(in oklab, var(--color-income) var(--mix-soft), var(--color-surface));
+  --color-expense-soft: color-mix(
+    in oklab,
+    var(--color-expense) var(--mix-expense-soft),
+    var(--color-surface)
+  );
+}
+
+[data-theme="dark"] {
+  --color-accent: var(--accent-dark);
+  --color-on-accent: var(--accent-on-dark);
+}

@@ -1,0 +1,33 @@
+/*
+  Styles entry. Order matters: tokens → shadcn aliases → recipes → base.
+  Folder guide:
+    tokens/palette.css     raw colours (layer 1)
+    tokens/theme.css       light/dark role tokens (layer 2)
+    tokens/accents.css     accent presets + derived tints (layer 3)
+    tokens/categories.css  category colour keys
+    tokens/scale.css       type, radius, sizes
+    shadcn.css             shadcn variable names → our tokens
+    recipes.css            glass, heat, cat-tile … (layer 4)
+    base.css               fonts and element defaults
+*/
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+/* Only our tokens exist: no stray bg-red-500 */
+@theme {
+  --color-*: initial;
+  --color-white: #ffffff;
+  --color-black: #000000;
+}
+
+@import "./tokens/palette.css";
+@import "./tokens/theme.css";
+@import "./tokens/accents.css";
+@import "./tokens/categories.css";
+@import "./tokens/scale.css";
+@import "./shadcn.css";
+@import "./recipes.css";
+@import "./base.css";
+
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));

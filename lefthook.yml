@@ -1,0 +1,10 @@
+# Checks run before `git push` only. Keep commits fast.
+pre-push:
+  piped: true
+  jobs:
+    - name: lint
+      run: pnpm biome ci .
+    - name: typecheck
+      run: pnpm typecheck
+    - name: build
+      run: pnpm vite build

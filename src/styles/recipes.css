@@ -1,0 +1,112 @@
+/*
+  Layer 4 · Recipes
+  Token combos written once so the glass look is never re-typed in a component.
+  Glass rules (from the handoff board):
+  - One layer of blur. Things inside a glass card use glass-chip (no blur).
+  - Sheets, dialogs and popovers use `sheet`: solid. Glass on glass turns to mud.
+  - Text sits on glass or solid surfaces, never straight on the page gradient (the page title may).
+*/
+
+/* The app background. A fixed layer so it never scrolls or repeats. */
+@utility page {
+  background: var(--page) fixed;
+  background-color: var(--color-page-solid);
+}
+
+/* Cards, sidebar, month arrows, add button */
+@utility glass {
+  background: var(--glass-fill);
+  border: 1px solid var(--color-glass-border);
+  box-shadow: var(--shadow-glass);
+  backdrop-filter: var(--glass-blur);
+}
+
+/* "Left this month" card only */
+@utility glass-hero {
+  background: var(--hero-fill);
+  border: 1px solid var(--color-glass-border);
+  box-shadow: var(--shadow-glass);
+  backdrop-filter: var(--glass-blur);
+}
+
+/* Selected nav item, calendar days, chips inside a glass card. No blur. */
+@utility glass-chip {
+  background: var(--chip-fill);
+  border: 1px solid var(--color-glass-border);
+  box-shadow: var(--shadow-chip);
+}
+
+/* Mobile bottom nav: more opaque than cards because content scrolls under it */
+@utility glass-bar {
+  background: var(--bar-fill);
+  border-top: 1px solid var(--color-glass-border);
+  backdrop-filter: var(--glass-blur);
+}
+
+/* Solid surface for sheets, dialogs, popovers */
+@utility sheet {
+  background: var(--color-surface);
+  color: var(--color-fg);
+}
+
+/*
+  Calendar shading. Level comes from features/dashboard/stats.ts (heatLevel).
+  Tints: 22 · 36 · 64 · 86 % of the accent, layered over the chip fill.
+  Day number flips to on-accent at level 4 in light and level 3 in dark.
+*/
+.heat-1,
+.heat-2,
+.heat-3,
+.heat-4 {
+  background:
+    linear-gradient(
+      color-mix(in oklab, var(--color-accent) var(--heat-mix), transparent),
+      color-mix(in oklab, var(--color-accent) var(--heat-mix), transparent)
+    ),
+    var(--chip-fill);
+}
+.heat-1 {
+  --heat-mix: 22%;
+}
+.heat-2 {
+  --heat-mix: 36%;
+}
+.heat-3 {
+  --heat-mix: 64%;
+}
+.heat-4 {
+  --heat-mix: 86%;
+  color: var(--color-on-accent);
+}
+[data-theme="dark"] .heat-3 {
+  color: var(--color-on-accent);
+}
+
+/* Category icon tile. Set --cat on the element: style={{ "--cat": "var(--cat-orange)" }} */
+@utility cat-tile {
+  background: color-mix(in oklab, var(--cat) var(--mix-tile), var(--color-surface));
+  color: var(--cat);
+}
+
+/* All money: tabular figures so columns line up */
+@utility num {
+  font-variant-numeric: tabular-nums;
+}
+
+/* No blur support, or the user asked for less transparency: switch to solid fills */
+@supports not (backdrop-filter: blur(1px)) {
+  :root {
+    --glass-fill: var(--color-surface);
+    --bar-fill: var(--color-surface);
+  }
+}
+@media (prefers-reduced-transparency: reduce) {
+  :root,
+  [data-theme="dark"] {
+    --page: var(--color-page-solid);
+    --glass-fill: var(--color-surface);
+    --chip-fill: var(--color-surface);
+    --bar-fill: var(--color-surface);
+    --hero-fill: var(--color-surface);
+  }
+}

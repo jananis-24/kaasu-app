@@ -1,0 +1,35 @@
+/* Type, radius and fixed sizes from the "Type, spacing & rules" handoff board. */
+@theme {
+  --font-display: "Bricolage Grotesque Variable", "Avenir Next", system-ui, sans-serif;
+  --font-body: "Figtree Variable", "Segoe UI", system-ui, sans-serif;
+
+  /* Font sizes → text-hero, text-3xl … text-xs. Display sizes pair with font-display. */
+  --text-hero: 44px;
+  --text-3xl: 32px;
+  --text-2xl: 28px;
+  --text-xl: 22px;
+  --text-lg: 18px;
+  --text-base: 15px;
+  --text-md: 14px;
+  --text-sm: 13px;
+  --text-xs: 12px;
+
+  /* Radius → rounded-xs … rounded-2xl, rounded-pill */
+  --radius-xs: 4px;
+  --radius-sm: 10px;
+  --radius-md: 14px;
+  --radius-lg: 20px;
+  --radius-xl: 24px;
+  --radius-2xl: 28px;
+  --radius-pill: 999px;
+
+  /* Fixed sizes → size-tap, w-sidebar, h-bottom-nav, max-w-content … */
+  --spacing-tap: 44px;
+  --spacing-icon: 20px;
+  --spacing-icon-sm: 16px;
+  --spacing-tile: 40px;
+  --spacing-fab: 60px;
+  --spacing-bottom-nav: 78px;
+  --spacing-sidebar: 248px;
+  --container-content: 960px;
+}

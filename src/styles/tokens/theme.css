@@ -1,0 +1,120 @@
+/*
+  Layer 2 · Theme
+  What components use. Same names in light and dark; the theme swaps values.
+  Light values live in @theme (so Tailwind makes utilities from them).
+  Dark values override the same variables under [data-theme="dark"].
+
+  Names vs the design handoff board:
+    handoff --text / --text-muted / --text-on-hero-muted / --text-disabled
+      → --color-fg / --color-fg-muted / --color-fg-hero-muted / --color-fg-disabled
+    (Tailwind uses --text-* for font sizes, so colour tokens use "fg".)
+    handoff --surface-track → --color-track
+    Everything else keeps the handoff name.
+
+  Rule: every token here must exist in BOTH blocks.
+*/
+@theme {
+  /* Solid colours → utilities like bg-surface, text-fg, border-divider */
+  --color-page-solid: var(--palette-ivory);
+  --color-surface: var(--palette-white);
+  --color-fg: var(--palette-ink);
+  --color-fg-muted: var(--palette-ink-soft);
+  --color-fg-hero-muted: var(--palette-ink-hero);
+  --color-fg-disabled: var(--palette-ink-faint);
+  --color-divider: rgb(35 31 26 / 0.08);
+  --color-track: rgb(35 31 26 / 0.07);
+  --color-glass-border: rgb(255 255 255 / 0.95);
+  --color-outline: rgb(35 31 26 / 0.3);
+  --color-income: var(--palette-green);
+  --color-expense: var(--palette-red);
+  --color-on-expense: var(--palette-white);
+  --color-action: var(--palette-ink);
+  --color-on-action: var(--palette-white);
+  --color-scrim: rgb(28 18 24 / 0.45);
+
+  /* Shadows → shadow-glass, shadow-chip, shadow-sheet, shadow-toast */
+  --shadow-glass:
+    inset 0 1px 0 rgb(255 255 255 / 0.95), inset 0 -1px 0 rgb(255 255 255 / 0.3),
+    0 1px 2px rgb(120 60 70 / 0.05), 0 14px 36px rgb(120 60 70 / 0.12);
+  --shadow-chip: inset 0 1px 0 rgb(255 255 255 / 0.95), 0 1px 3px rgb(120 60 70 / 0.08);
+  --shadow-chip-strong: inset 0 1px 0 rgb(255 255 255 / 0.95), 0 1px 3px rgb(120 60 70 / 0.12);
+  --shadow-sheet: 0 -12px 40px rgb(60 30 40 / 0.18);
+  --shadow-dialog: 0 20px 50px rgb(0 0 0 / 0.3);
+  --shadow-toast: 0 12px 30px rgb(0 0 0 / 0.25);
+}
+
+/* Gradients and filters. Used by recipes.css only, not as utilities. */
+:root {
+  --page:
+    linear-gradient(
+      145deg,
+      var(--palette-mint) 0%,
+      var(--palette-sand) 50%,
+      var(--palette-blush) 100%
+    );
+  --glass-fill: linear-gradient(145deg, rgb(255 255 255 / 0.82) 0%, rgb(255 255 255 / 0.6) 100%);
+  --chip-fill: linear-gradient(145deg, rgb(255 255 255 / 0.95) 0%, rgb(255 255 255 / 0.62) 100%);
+  --hero-fill:
+    linear-gradient(
+      135deg,
+      rgb(181 242 177 / 0.9) 0%,
+      rgb(245 232 214 / 0.75) 50%,
+      rgb(255 185 198 / 0.9) 100%
+    );
+  --bar-fill: linear-gradient(145deg, rgb(255 255 255 / 0.86) 0%, rgb(255 255 255 / 0.7) 100%);
+  --glass-blur: blur(20px) saturate(160%);
+
+  /* How strongly accent / category colours tint a surface */
+  --mix-soft: 13%;
+  --mix-expense-soft: 12%;
+  --mix-tile: 14%;
+}
+
+[data-theme="dark"] {
+  --color-page-solid: var(--palette-night);
+  --color-surface: var(--palette-night-surface);
+  --color-fg: var(--palette-cream);
+  --color-fg-muted: var(--palette-cream-soft);
+  --color-fg-hero-muted: var(--palette-cream-hero);
+  --color-fg-disabled: var(--palette-cream-faint);
+  --color-divider: rgb(255 255 255 / 0.08);
+  --color-track: rgb(255 255 255 / 0.08);
+  --color-glass-border: rgb(255 255 255 / 0.14);
+  --color-outline: rgb(255 255 255 / 0.35);
+  --color-income: var(--palette-green-bright);
+  --color-expense: var(--palette-red-bright);
+  --color-on-expense: var(--palette-red-night);
+  --color-action: var(--palette-cream);
+  --color-on-action: var(--palette-night);
+  --color-scrim: rgb(0 0 0 / 0.6);
+
+  --shadow-glass: inset 0 1px 0 rgb(255 255 255 / 0.12), 0 14px 36px rgb(0 0 0 / 0.32);
+  --shadow-chip: inset 0 1px 0 rgb(255 255 255 / 0.12);
+  --shadow-chip-strong: inset 0 1px 0 rgb(255 255 255 / 0.12);
+  --shadow-sheet: 0 -12px 40px rgb(0 0 0 / 0.5);
+  --shadow-dialog: 0 20px 50px rgb(0 0 0 / 0.3);
+  --shadow-toast: 0 12px 30px rgb(0 0 0 / 0.25);
+
+  --page:
+    linear-gradient(
+      145deg,
+      var(--palette-forest-night) 0%,
+      var(--palette-sand-night) 50%,
+      var(--palette-berry-night) 100%
+    );
+  --glass-fill: linear-gradient(145deg, rgb(255 255 255 / 0.11) 0%, rgb(255 255 255 / 0.04) 100%);
+  --chip-fill: linear-gradient(145deg, rgb(255 255 255 / 0.18) 0%, rgb(255 255 255 / 0.07) 100%);
+  --hero-fill:
+    linear-gradient(
+      135deg,
+      rgb(60 140 85 / 0.35) 0%,
+      rgb(120 95 60 / 0.2) 50%,
+      rgb(190 70 110 / 0.35) 100%
+    );
+  --bar-fill: linear-gradient(145deg, rgb(40 36 46 / 0.92) 0%, rgb(33 30 39 / 0.86) 100%);
+  --glass-blur: blur(20px) saturate(140%);
+
+  --mix-soft: 22%;
+  --mix-expense-soft: 22%;
+  --mix-tile: 24%;
+}

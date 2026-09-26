@@ -1,0 +1,47 @@
+/*
+  shadcn/ui reads these variable names. They only POINT at our tokens.
+  Never put a colour value here; change the token instead.
+  (shadcn's "accent" = our --color-accent, the brand accent. Hover fills use bg-track.)
+*/
+:root {
+  --background: var(--color-surface);
+  --foreground: var(--color-fg);
+  --card: var(--color-surface);
+  --card-foreground: var(--color-fg);
+  --popover: var(--color-surface);
+  --popover-foreground: var(--color-fg);
+  --primary: var(--color-action);
+  --primary-foreground: var(--color-on-action);
+  --secondary: var(--color-track);
+  --secondary-foreground: var(--color-fg);
+  --muted: var(--color-track);
+  --muted-foreground: var(--color-fg-muted);
+  --accent-foreground: var(--color-on-accent);
+  --destructive: var(--color-expense);
+  --border: var(--color-divider);
+  --input: var(--color-outline);
+  --ring: var(--color-accent);
+  --radius: var(--radius-lg);
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --font-sans: var(--font-body);
+  --font-heading: var(--font-display);
+}

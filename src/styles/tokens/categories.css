@@ -1,0 +1,34 @@
+/*
+  Category colours. A category stores the KEY ("violet"), never the hex.
+  Use with the .cat-tile recipe: style={{ "--cat": "var(--cat-violet)" }}.
+  To add a colour: add a light/dark pair here and the key in features/categories/schema.ts.
+*/
+:root {
+  --cat-violet: #6d5ae6;
+  --cat-orange: #c8621a;
+  --cat-olive: #5e7f14;
+  --cat-blue: #1a7fb3;
+  --cat-amber: #a8740f;
+  --cat-pink: #c23f74;
+  --cat-teal: #0f8c85;
+  --cat-grey: #756e68;
+  --cat-green: #1b7a43;
+  --cat-indigo: #4f5bd5;
+  --cat-brown: #8a5a3c;
+  --cat-plum: #8e3f9e;
+}
+
+[data-theme="dark"] {
+  --cat-violet: #a99bff;
+  --cat-orange: #ffaa66;
+  --cat-olive: #bbd867;
+  --cat-blue: #72c6f2;
+  --cat-amber: #f2c451;
+  --cat-pink: #ff92bc;
+  --cat-teal: #62d8cf;
+  --cat-grey: #b9b2ac;
+  --cat-green: #5fd08f;
+  --cat-indigo: #9ea8ff;
+  --cat-brown: #d9a882;
+  --cat-plum: #e09bf0;
+}
