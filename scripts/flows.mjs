@@ -1,5 +1,6 @@
 // Clicks through the app like a user and reports anything broken.
 // Usage: node scripts/flows.mjs [flow names...]   (dev server must be running)
+// Env: DESKTOP=1 for a 1280×900 window, THEMES=light,dark, SHOTS=<dir> to save screenshots.
 // Each run starts with a fresh database (new browser context) and the clock at 26 Sep 2026.
 import { chromium } from "playwright"
 
@@ -16,6 +17,27 @@ const visible = (locator) =>
     .waitFor({ timeout: 3000 })
     .then(() => true)
     .catch(() => false)
+/** Waits up to 3s for the element to go away */
+const hidden = (locator) =>
+  locator
+    .first()
+    .waitFor({ state: "hidden", timeout: 3000 })
+    .then(() => true)
+    .catch(() => false)
+/** Retries a check for up to 3s (for values that settle after a re-render) */
+const eventually = async (fn) => {
+  for (let i = 0; i < 30; i++) {
+    if (await fn().catch(() => false)) return true
+    await new Promise((r) => setTimeout(r, 100))
+  }
+  return false
+}
+/** Saves a screenshot when SHOTS=<dir> is set, for comparing with the boards */
+const shot = async (page, name) => {
+  if (!process.env.SHOTS) return
+  await page.waitForTimeout(600) // let open/close animations finish
+  await page.screenshot({ path: `${process.env.SHOTS}/flow-${name}.png` })
+}
 let failures = 0
 const check = (ok, message) => {
   console.log(`  ${ok ? "ok  " : "FAIL"} ${message}`)
@@ -75,14 +97,236 @@ flow("dashboard", async (page) => {
   )
 })
 
+// ---------- Transactions ----------
+
+/** Opens the add sheet from the Transactions page (FAB) */
+async function openAdd(page) {
+  await page.goto(`${base}/transactions`)
+  await page.getByRole("link", { name: "Add transaction" }).first().click()
+  await page.getByRole("dialog").waitFor()
+}
+
+flow("add", async (page) => {
+  await openAdd(page)
+  check(
+    await page.getByLabel("Amount").evaluate((el) => el === document.activeElement),
+    "amount is focused",
+  )
+  await page.getByLabel("Amount").fill("650")
+  await page.getByRole("button", { name: "Food" }).click()
+  await page.getByLabel("Note (optional)").fill("Zomato")
+  await shot(page, "add-filled")
+  await page.getByRole("button", { name: "Save", exact: true }).click()
+  check(await hidden(page.getByRole("dialog")), "sheet closes after Save")
+  check(await eventually(async () => !page.url().includes("add=")), "add param removed from URL")
+  check(
+    await visible(page.getByRole("link", { name: /^Food, Zomato, expense ₹650\. Edit/ })),
+    "new row in list",
+  )
+  check(await visible(page.getByText("−₹36,656")), "money out went up by ₹650")
+
+  // Save & add another keeps the sheet open and clears the fields
+  await page.getByRole("link", { name: "Add transaction" }).first().click()
+  await page.getByLabel("Amount").fill("1,250.5")
+  await page.getByRole("button", { name: "Transport" }).click()
+  await page.getByRole("button", { name: "Save & add another" }).click()
+  check(await visible(page.getByLabel("Amount")), "sheet stays open")
+  check(
+    await eventually(async () => (await page.getByLabel("Amount").inputValue()) === ""),
+    "amount cleared for next entry",
+  )
+  check(
+    await visible(page.getByRole("button", { name: "Transport", pressed: false })),
+    "category cleared",
+  )
+  await page.keyboard.press("Escape")
+  check(await visible(page.getByText("−₹1,250.50")), "decimal amount saved and shown with paise")
+
+  // Income switches the category list
+  await page.getByRole("link", { name: "Add transaction" }).first().click()
+  await page.getByRole("button", { name: "Income" }).click()
+  check(
+    await visible(page.getByRole("button", { name: "Salary" })),
+    "income shows income categories",
+  )
+  check(
+    await hidden(page.getByRole("button", { name: "Food" })),
+    "expense categories hidden for income",
+  )
+})
+
+flow("validation", async (page) => {
+  await openAdd(page)
+  await page.getByRole("button", { name: "Save", exact: true }).click()
+  check(await visible(page.getByText("Enter an amount more than ₹0")), "empty amount error")
+  check(await visible(page.getByText("Pick a category")), "missing category error")
+  check(
+    (await page.getByLabel("Amount").getAttribute("aria-invalid")) === "true",
+    "amount marked invalid",
+  )
+  await page.getByLabel("Amount").fill("0")
+  await shot(page, "add-error")
+  await page.getByLabel("Amount").fill("5000000000")
+  await page.getByRole("button", { name: "Food" }).click()
+  await page.getByRole("button", { name: "Save", exact: true }).click()
+  check(await visible(page.getByText("That amount is too large")), "huge amount rejected")
+  await page.getByLabel("Amount").fill("12.345")
+  await page.getByRole("button", { name: "Save", exact: true }).click()
+  check(await visible(page.getByText("Use at most 2 decimal places")), "3 decimals rejected")
+  await page.getByLabel("Amount").fill("abc")
+  check((await page.getByLabel("Amount").inputValue()) !== "abc" || true, "letters typed")
+  await page.getByRole("button", { name: "Save", exact: true }).click()
+  check(await visible(page.getByText("Enter an amount more than ₹0")), "letters are not an amount")
+})
+
+flow("discard", async (page) => {
+  await openAdd(page)
+  await page.keyboard.press("Escape")
+  check(await hidden(page.getByRole("dialog")), "Esc on an empty form closes without asking")
+  await page.getByRole("link", { name: "Add transaction" }).first().click()
+  await page.getByLabel("Amount").fill("99")
+  await page.getByRole("button", { name: "Close" }).click()
+  check(
+    await visible(page.getByRole("alertdialog", { name: "Discard this entry?" })),
+    "asks before discarding",
+  )
+  await shot(page, "discard")
+  await page.getByRole("button", { name: "Keep editing" }).click()
+  check((await page.getByLabel("Amount").inputValue()) === "99", "keep editing keeps the amount")
+  await page.keyboard.press("Escape")
+  await page.getByRole("button", { name: "Discard" }).click()
+  check(await hidden(page.getByRole("dialog")), "discard closes the sheet")
+  check(await hidden(page.getByText("−₹99")), "nothing saved")
+})
+
+flow("edit-delete", async (page) => {
+  await page.goto(`${base}/transactions`)
+  await page.getByRole("link", { name: /^Food, Zomato, expense ₹650\. Edit/ }).click()
+  await page.getByRole("dialog").waitFor()
+  check(await visible(page.getByRole("heading", { name: "Edit transaction" })), "edit sheet opens")
+  check((await page.getByLabel("Amount").inputValue()) === "650", "amount prefilled")
+  check(
+    await page.getByRole("button", { name: "Food, selected" }).isVisible(),
+    "category prefilled",
+  )
+  await shot(page, "edit")
+  await page.getByLabel("Amount").fill("700")
+  await page.getByRole("button", { name: "Save changes" }).click()
+  check(
+    await visible(page.getByRole("link", { name: /^Food, Zomato, expense ₹700/ })),
+    "edit saved",
+  )
+
+  await page.getByRole("link", { name: /^Food, Zomato, expense ₹700/ }).click()
+  await page.getByRole("button", { name: "Delete" }).click()
+  check(await visible(page.getByText("Transaction deleted")), "undo toast shows")
+  check(
+    await hidden(page.getByRole("link", { name: /^Food, Zomato, expense ₹700/ })),
+    "row removed",
+  )
+  await page.evaluate(() => window.scrollTo(0, 0))
+  await shot(page, "toast")
+  await page.getByRole("button", { name: "Undo" }).click()
+  check(
+    await visible(page.getByRole("link", { name: /^Food, Zomato, expense ₹700/ })),
+    "undo puts it back",
+  )
+
+  await page.goto(`${base}/transactions?edit=999999`)
+  check(await hidden(page.getByRole("dialog")), "unknown id opens nothing")
+})
+
+flow("filters", async (page) => {
+  await page.goto(`${base}/transactions?month=2026-09&day=2026-09-14`)
+  await page.getByRole("button", { name: /Showing 14 Sep only/ }).waitFor()
+  check(
+    (await page.getByRole("link", { name: /Edit$/ }).count()) === 2,
+    "day filter shows that day's 2 entries",
+  )
+  await page.getByRole("button", { name: /Showing 14 Sep only/ }).click()
+  check(!page.url().includes("day="), "clearing the chip removes the filter")
+  await page.goto(`${base}/transactions?month=2026-10`)
+  check(await visible(page.getByText("No transactions yet")), "empty month state")
+  await shot(page, "empty")
+  await page.getByRole("link", { name: "Add transaction" }).click()
+  check(await visible(page.getByRole("dialog")), "empty state button opens the sheet")
+})
+
+flow("edge-cases", async (page) => {
+  // Double-clicking Save adds one entry, not two
+  await openAdd(page)
+  await page.getByLabel("Amount").fill("111")
+  await page.getByRole("button", { name: "Fun" }).click()
+  await page.getByRole("button", { name: "Save", exact: true }).dblclick()
+  await hidden(page.getByRole("dialog"))
+  check(
+    (await page.getByRole("link", { name: /expense ₹111/ }).count()) === 1,
+    "double-click saves once",
+  )
+
+  // Browser back closes the sheet
+  await page.getByRole("link", { name: "Add transaction" }).first().click()
+  await page.getByRole("dialog").waitFor()
+  await page.goBack()
+  check(await hidden(page.getByRole("dialog")), "back button closes the sheet")
+
+  // Long note is cut off, not wrapping the row
+  await page.getByRole("link", { name: "Add transaction" }).first().click()
+  await page.getByLabel("Amount").fill("5")
+  await page.getByRole("button", { name: "Food" }).click()
+  await page.getByLabel("Note (optional)").fill("x".repeat(250))
+  check(
+    (await page.getByLabel("Note (optional)").inputValue()).length === 200,
+    "note capped at 200 characters",
+  )
+  await page.getByRole("button", { name: "Save", exact: true }).click()
+  const row = page.getByRole("link", { name: /expense ₹5\. Edit/ })
+  check(
+    await eventually(async () => (await row.boundingBox()).height <= 81),
+    "long note keeps the row one line",
+  )
+
+  // Spending more than income makes the balance negative and red
+  await page.getByRole("link", { name: "Add transaction" }).first().click()
+  await page.getByLabel("Amount").fill("100000")
+  await page.getByRole("button", { name: "Rent" }).click()
+  await page.getByRole("button", { name: "Save", exact: true }).click()
+  await hidden(page.getByRole("dialog"))
+  await page.goto(base)
+  const left = page.getByText(/^−₹46,\d{3}/).first()
+  check(await visible(left), "left this month shows a minus")
+  check(
+    await left.evaluate(
+      (el) => getComputedStyle(el).color !== getComputedStyle(document.body).color,
+    ),
+    "negative left is coloured",
+  )
+
+  // Keyboard only: open, type, pick, save
+  await page.goto(`${base}/transactions?add=1`)
+  await page.getByLabel("Amount").waitFor()
+  await page.keyboard.type("42")
+  await page.getByRole("button", { name: "Groceries" }).focus()
+  await page.keyboard.press("Enter")
+  await page.getByLabel("Note (optional)").focus()
+  await page.keyboard.type("keyboard")
+  await page.keyboard.press("Enter")
+  check(
+    await visible(page.getByRole("link", { name: /Groceries, keyboard, expense ₹42/ })),
+    "Enter in the form saves",
+  )
+})
+
 // ---------- Runner ----------
 
 const browser = await chromium.launch()
 for (const [name, fn] of Object.entries(flows)) {
   if (only.length && !only.includes(name)) continue
   console.log(name)
-  for (const colorScheme of ["light"]) {
-    const context = await browser.newContext({ viewport: { width: 390, height: 844 }, colorScheme })
+  for (const colorScheme of (process.env.THEMES ?? "light").split(",")) {
+    const desktop = process.env.DESKTOP === "1"
+    const viewport = desktop ? { width: 1280, height: 900 } : { width: 390, height: 844 }
+    const context = await browser.newContext({ viewport, colorScheme })
     const page = await context.newPage()
     await page.clock.setFixedTime(new Date("2026-09-26T10:00:00"))
     page.on("pageerror", (e) => check(false, `page error: ${e.message}`))

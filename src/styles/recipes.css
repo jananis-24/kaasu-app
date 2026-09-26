@@ -43,6 +43,17 @@
   backdrop-filter: var(--glass-blur);
 }
 
+/* Grey track holding a segmented control (ToggleGroup / TabsList) */
+@utility segmented {
+  display: grid;
+  grid-auto-columns: minmax(0, 1fr);
+  grid-auto-flow: column;
+  gap: 4px;
+  padding: 4px;
+  border-radius: 16px;
+  background: var(--color-track);
+}
+
 /* Solid surface for sheets, dialogs, popovers */
 @utility sheet {
   background: var(--color-surface);

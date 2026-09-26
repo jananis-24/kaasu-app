@@ -1,5 +1,6 @@
 import { Plus } from "lucide-react"
 import { Link, useLocation } from "react-router"
+import { useSonner } from "sonner"
 import { cn } from "@/lib/utils"
 
 /** Floating add button: square icon button on mobile, labelled pill on desktop. Opens ?add=1. */
@@ -7,6 +8,8 @@ export function AddTransactionButton({ className }: { className?: string }) {
   const location = useLocation()
   const params = new URLSearchParams(location.search)
   params.set("add", "1")
+  // Move up out of the way while a toast (e.g. "Transaction deleted · Undo") is showing
+  const toastShowing = useSonner().toasts.length > 0
 
   return (
     <Link
@@ -14,6 +17,7 @@ export function AddTransactionButton({ className }: { className?: string }) {
       aria-label="Add transaction"
       className={cn(
         "glass-chip fixed right-5 bottom-24 z-30 flex size-fab items-center justify-center rounded-[22px] text-fg shadow-glass backdrop-blur-xl",
+        toastShowing && "bottom-40",
         "lg:right-10 lg:bottom-9 lg:size-auto lg:h-14 lg:gap-2.5 lg:rounded-lg lg:pr-6 lg:pl-4.5 lg:font-bold lg:text-base",
         className,
       )}

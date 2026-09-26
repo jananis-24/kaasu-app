@@ -13,6 +13,8 @@ type Props = {
   /** Small grey line under the amount ("Today"). Dashboard shows it, the list doesn't. */
   when?: string
   upcoming?: boolean
+  /** "table": on desktop, lays out as columns (icon · name · note · amount) like the list board */
+  layout?: "stacked" | "table"
   className?: string
 }
 
@@ -23,6 +25,7 @@ export function TransactionRow({
   currency,
   when,
   upcoming,
+  layout = "stacked",
   className,
 }: Props) {
   const location = useLocation()
@@ -31,6 +34,7 @@ export function TransactionRow({
 
   const income = transaction.type === "in"
   const amount = formatMoney(transaction.amountMinor, currency, income ? "+" : "-")
+  const table = layout === "table"
   const label = [
     category?.name,
     transaction.note,
@@ -45,10 +49,15 @@ export function TransactionRow({
     <Link
       to={{ search: params.toString() }}
       aria-label={`${label}. Edit`}
-      className={cn("box-content flex min-h-16 items-center gap-3 py-2 text-fg", className)}
+      className={cn(
+        "box-content flex min-h-16 items-center gap-3 py-2 text-fg",
+        table &&
+          "lg:grid lg:min-h-14 lg:grid-cols-[40px_180px_minmax(0,1fr)_140px] lg:gap-4 lg:py-0",
+        className,
+      )}
     >
       <CategoryTile category={category} />
-      <span className="flex min-w-0 grow flex-col">
+      <span className={cn("flex min-w-0 grow flex-col", table && "lg:contents")}>
         <span className="flex items-center gap-2">
           <span className="font-semibold">{category?.name}</span>
           {upcoming && (
@@ -58,7 +67,9 @@ export function TransactionRow({
             </span>
           )}
         </span>
-        <span className="truncate text-fg-muted text-sm">{transaction.note}</span>
+        <span className={cn("truncate text-fg-muted text-sm", table && "lg:text-base")}>
+          {transaction.note}
+        </span>
       </span>
       <span className="flex flex-col items-end">
         <span className={cn("num font-bold", income ? "text-income" : "text-expense")}>
