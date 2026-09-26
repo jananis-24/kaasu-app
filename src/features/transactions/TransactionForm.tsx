@@ -156,12 +156,7 @@ export function TransactionForm({
           <label htmlFor={`${ids}-amount`} className="font-bold text-sm">
             Amount
           </label>
-          <div
-            className={cn(
-              "flex h-17 items-center gap-1.5 rounded-[18px] border-2 border-transparent bg-track px-4 focus-within:border-fg",
-              amountError && "border-expense focus-within:border-expense",
-            )}
-          >
+          <div className="field flex h-17 items-center gap-1.5 rounded-[18px] px-4">
             <span
               aria-hidden
               className={cn(
@@ -211,7 +206,7 @@ export function TransactionForm({
         </fieldset>
 
         {/* The row shows the date nicely; the native date input on top of it does the picking. */}
-        <label className="relative flex min-h-13 items-center gap-3 rounded-[16px] bg-track px-3.5">
+        <label className="field relative flex min-h-13 items-center gap-3 px-3.5">
           <CalendarDays className="size-icon" strokeWidth={2} aria-hidden />
           <span className="grow font-bold text-sm">Date</span>
           <span className="font-semibold">
@@ -239,7 +234,7 @@ export function TransactionForm({
             id={`${ids}-note`}
             placeholder="e.g. Swiggy order"
             maxLength={200}
-            className="h-13 rounded-[16px] bg-track px-3.5 outline-none placeholder:text-fg-muted focus-visible:outline-2 focus-visible:outline-fg"
+            className="field h-13 px-3.5 placeholder:text-fg-muted"
             {...register("note")}
           />
         </div>

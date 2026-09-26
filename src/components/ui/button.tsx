@@ -19,7 +19,7 @@ const buttonVariants = cva(
         /** Glass button inside a card (Add category) */
         chip: "glass-chip text-fg",
         /** Plain round icon button (Close) */
-        subtle: "bg-track text-fg",
+        subtle: "border-field-border bg-field text-fg",
         ghost: "bg-transparent text-fg hover:bg-track",
       },
       size: {

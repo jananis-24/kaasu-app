@@ -57,7 +57,7 @@ function CommandInput({
   return (
     <label
       data-slot="command-input-wrapper"
-      className="flex h-13 shrink-0 items-center gap-2.5 rounded-[16px] bg-track px-3.5 text-fg-muted focus-within:outline-2 focus-within:outline-fg"
+      className="field flex h-13 shrink-0 items-center gap-2.5 px-3.5 text-fg-muted"
     >
       <SearchIcon className="size-icon shrink-0" strokeWidth={2} aria-hidden />
       <CommandPrimitive.Input

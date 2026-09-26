@@ -107,10 +107,7 @@ export function CategoryForm({ category, type, others, onSubmit, onClose, onDele
             autoComplete="off"
             aria-invalid={Boolean(nameError)}
             aria-describedby={`${ids}-name-msg`}
-            className={cn(
-              "h-13 rounded-[16px] border-2 border-transparent bg-track px-3.5 font-semibold outline-none focus-visible:border-fg disabled:text-fg-muted",
-              nameError && "border-expense focus-visible:border-expense",
-            )}
+            className="field h-13 px-3.5 font-semibold disabled:text-fg-muted"
             {...register("name")}
           />
           {nameError && (
@@ -138,7 +135,7 @@ export function CategoryForm({ category, type, others, onSubmit, onClose, onDele
             Type
           </span>
           {isEdit ? (
-            <span className="flex h-13 items-center justify-between rounded-[16px] bg-track px-3.5">
+            <span className="field flex h-13 items-center justify-between px-3.5">
               <span className="font-semibold">
                 {category?.type === "in" ? "Income" : "Expense"}
               </span>

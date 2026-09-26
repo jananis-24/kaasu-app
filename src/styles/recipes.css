@@ -54,10 +54,39 @@
   background: var(--color-track);
 }
 
-/* Solid surface for sheets, dialogs, popovers */
+/* Sheets, dialogs, popovers: one look for all of them (Sheets & dialogs board).
+   Near-solid fill with a hint of the page colours and the bright glass rim.
+   Mobile sheets and desktop dialogs only differ in shape and shadow. */
 @utility sheet {
-  background: var(--color-surface);
+  background: var(--sheet-fill);
+  border: 1px solid var(--color-glass-border);
   color: var(--color-fg);
+}
+
+/* Inputs inside sheets: soft fill, 1px rim; 2px ink border when focused, red when invalid.
+   Works on an <input> or on a wrapper around one (amount box, date row). */
+@utility field {
+  background: var(--color-field);
+  border: 1px solid var(--color-field-border);
+  border-radius: 16px;
+  outline: none;
+  &:focus-visible,
+  &:focus-within {
+    border-color: var(--color-fg);
+    box-shadow: inset 0 0 0 1px var(--color-fg);
+  }
+  &[aria-invalid="true"],
+  &:has([aria-invalid="true"]) {
+    background: color-mix(in oklab, var(--color-expense) 6%, var(--color-field));
+    border-color: var(--color-expense);
+    box-shadow: inset 0 0 0 1px var(--color-expense);
+  }
+}
+
+/* A segmented control inside a sheet takes the field look */
+.sheet .segmented {
+  background: var(--color-field);
+  border: 1px solid var(--color-field-border);
 }
 
 /*

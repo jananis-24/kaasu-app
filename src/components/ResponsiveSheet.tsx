@@ -13,7 +13,7 @@ type Props = {
   children: ReactNode
 }
 
-/** Bottom sheet on mobile, centred popup on desktop (≥1024px). Solid surface, never glass. */
+/** Bottom sheet on mobile, centred popup on desktop (≥1024px). Uses the .sheet surface, never glass. */
 export function ResponsiveSheet({ open, onOpenChange, className, children }: Props) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -21,9 +21,9 @@ export function ResponsiveSheet({ open, onOpenChange, className, children }: Pro
         showCloseButton={false}
         className={cn(
           // Mobile: pinned to the bottom, slides up
-          "data-closed:slide-out-to-bottom data-open:slide-in-from-bottom data-closed:zoom-out-100 data-open:zoom-in-100 top-auto bottom-0 left-0 flex max-h-[calc(100svh-24px)] w-full max-w-none translate-x-0 translate-y-0 flex-col gap-0 rounded-none rounded-t-2xl px-5 pt-2.5 pb-6 shadow-sheet",
+          "data-closed:slide-out-to-bottom data-open:slide-in-from-bottom data-closed:zoom-out-100 data-open:zoom-in-100 top-auto bottom-0 left-0 flex max-h-[calc(100svh-24px)] w-full max-w-none translate-x-0 translate-y-0 flex-col gap-0 rounded-none rounded-t-2xl border-x-0 border-b-0 px-5 pt-2.5 pb-6 shadow-sheet",
           // Desktop: centred popup
-          "lg:data-closed:slide-out-to-bottom-0 lg:data-open:slide-in-from-bottom-0 lg:top-1/2 lg:bottom-auto lg:left-1/2 lg:-translate-x-1/2 lg:-translate-y-1/2 lg:rounded-2xl lg:px-7 lg:pt-6 lg:pb-7 lg:shadow-dialog",
+          "lg:data-closed:slide-out-to-bottom-0 lg:data-open:slide-in-from-bottom-0 lg:top-1/2 lg:bottom-auto lg:left-1/2 lg:-translate-x-1/2 lg:-translate-y-1/2 lg:rounded-2xl lg:border lg:px-7 lg:pt-6 lg:pb-7 lg:shadow-dialog",
           className,
         )}
       >
@@ -54,9 +54,7 @@ export function SheetHeader(props: { title: string; onClose: () => void; action?
 export function SheetBody({ children }: { children: ReactNode }) {
   // Small side padding so focus rings and selected borders aren't cut off by the scroll edge
   return (
-    <div className="-mx-1 flex min-h-0 flex-1 flex-col gap-3.5 overflow-y-auto px-1">
-      {children}
-    </div>
+    <div className="-m-1 flex min-h-0 flex-1 flex-col gap-3.5 overflow-y-auto p-1">{children}</div>
   )
 }
 

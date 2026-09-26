@@ -87,7 +87,7 @@ export function CategorySheet() {
       <ResponsiveSheet
         open={open}
         onOpenChange={(next) => !next && close()}
-        className="h-[770px] gap-3.5 lg:h-[740px] lg:w-[520px]"
+        className="h-[770px] gap-3.5 lg:h-auto lg:w-[520px]"
       >
         {open && (
           <CategoryForm
@@ -112,7 +112,7 @@ export function CategorySheet() {
               </AlertDialogDescription>
             </AlertDialogHeader>
             {/* Styled row on top, a native select underneath does the picking */}
-            <label className="relative flex min-h-14 items-center gap-3 rounded-[16px] bg-track px-3.5">
+            <label className="field relative flex min-h-14 items-center gap-3 px-3.5">
               <CategoryTile
                 category={target}
                 className="size-9 rounded-[12px]"

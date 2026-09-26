@@ -59,7 +59,7 @@ export function TransactionSheet() {
       <ResponsiveSheet
         open={open}
         onOpenChange={(next) => !next && requestClose()}
-        className="h-[720px] gap-3.5 lg:h-[700px] lg:w-[520px]"
+        className="h-[720px] gap-3.5 lg:h-auto lg:w-[520px]"
       >
         {open && (
           <TransactionForm
