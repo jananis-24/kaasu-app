@@ -2,6 +2,8 @@
 
 A personal expense tracker. Log what comes in and what goes out, and see where your money went this month.
 
+**Live demo:** https://kaasu-finance-app.vercel.app
+
 ## Features
 
 - **Dashboard:** monthly totals, spending by category, a spending calendar, recent transactions, and what changed compared with last month
